@@ -1,15 +1,6 @@
-const express = require('express');
-const dotenv = require('dotenv');
+const app = require('./controllers/spotifyController');
+const port = 3000;
 
-
-const app = express();
-dotenv.config();
-
-
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-app.listen(PORT, () => {
-    console.log('Server is running on port 3000');
+app.listen(port, () => {
+    console.log(`Listening at http://localhost:${port}`);
 });
