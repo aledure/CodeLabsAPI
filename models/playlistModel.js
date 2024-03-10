@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Define schema for playlist
 const playlistSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -11,8 +10,11 @@ const playlistSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
     tracks: [{
-        // Define schema for each track in the playlist
         title: {
             type: String,
             required: true
@@ -27,7 +29,6 @@ const playlistSchema = new mongoose.Schema({
     }]
 });
 
-// Create model from schema
 const Playlist = mongoose.model('Playlist', playlistSchema);
 
 module.exports = Playlist;

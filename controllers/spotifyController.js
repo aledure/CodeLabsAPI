@@ -1,16 +1,24 @@
-const express = require('express');
 const spotifyApi = require('../models/spotifyModel');
 
-const app = express();
+const spotifyController = {};
 
-// Route handler for the login endpoint.
-app.get('/login', (req, res) => {
+spotifyController.login = (req, res) => {
     const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
-    res.redirect(spotifyApi.createAuthorizeURL(scopes));
-});
 
-// Route handler for the callback endpoint after the user has logged in.
-app.get('/callback', (req, res) => {
+    // Get the current base URL
+    const baseUrl = req.protocol + '://' + req.get('host');
+
+    // Manually construct the callback URL with "/spotify/callback"
+    const callbackURL = baseUrl + '/spotify/callback';
+
+    // Create the authorization URL with the modified callback URL
+    const authorizeURL = spotifyApi.createAuthorizeURL(scopes, null, callbackURL);
+
+    // Redirect to the modified authorization URL
+    res.redirect(authorizeURL);
+};
+
+spotifyController.callback = (req, res) => {
     const error = req.query.error;
     const code = req.query.code;
 
@@ -42,44 +50,55 @@ app.get('/callback', (req, res) => {
         console.error('Error getting Tokens:', error);
         res.send('Error getting tokens');
     });
-});
+};
 
-// Route handler for the search endpoint.
-app.get('/search', async (req, res) => {
-    const { q } = req.query;
+spotifyController.search = async (req, res) => {
+    const { q, type } = req.query;
 
     try {
-        const searchData = await spotifyApi.searchArtists(q);
-        const artist = searchData.body.artists.items[0];
+        let searchData;
+        if (type === 'artist') {
+            searchData = await spotifyApi.searchArtists(q);
+            const artist = searchData.body.artists.items[0];
 
-        const albumsData = await spotifyApi.getArtistAlbums(artist.id);
-        const albums = albumsData.body.items;
+            const albumsData = await spotifyApi.getArtistAlbums(artist.id);
+            const albums = albumsData.body.items;
 
-        const topTracksData = await spotifyApi.getArtistTopTracks(artist.id, 'US');
-        const topTracks = topTracksData.body.tracks;
+            const topTracksData = await spotifyApi.getArtistTopTracks(artist.id, 'US');
+            const topTracks = topTracksData.body.tracks;
 
-        const artistInfo = {
-            name: artist.name,
-            uri: artist.uri,
-            albums: albums.map(album => ({
-                name: album.name,
-                uri: album.uri
-            })),
-            topTracks: topTracks.map(track => ({
+            const artistInfo = {
+                name: artist.name,
+                uri: artist.uri,
+                albums: albums.map(album => ({
+                    name: album.name,
+                    uri: album.uri
+                })),
+                topTracks: topTracks.map(track => ({
+                    name: track.name,
+                    uri: track.uri
+                }))
+            };
+
+            res.send(artistInfo);
+        } else if (type === 'track') {
+            searchData = await spotifyApi.searchTracks(q);
+            const tracks = searchData.body.tracks.items.map(track => ({
                 name: track.name,
                 uri: track.uri
-            }))
-        };
+            }));
 
-        res.send(artistInfo);
+            res.send(tracks);
+        } else {
+            res.status(400).send('Invalid type parameter. Use "artist" or "track".');
+        }
     } catch (err) {
         console.error('Search Error:', err);
         res.send('Error occurred during search');
     }
-});
+};
 
-// Route handler for the play endpoint.
-app.get('/play', (req, res) => {
+spotifyController.play = (req, res) => {
     const { uri } = req.query;
 
     spotifyApi.play({ uris: [uri] }).then(() => {
@@ -88,6 +107,6 @@ app.get('/play', (req, res) => {
         console.error('Play Error:', err);
         res.send('Error occurred during playback');
     });
-});
+};
 
-module.exports = app;
+module.exports = spotifyController;
