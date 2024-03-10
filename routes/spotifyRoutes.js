@@ -6,5 +6,6 @@ router.get('/login', spotifyController.login);
 router.get('/callback', spotifyController.callback);
 router.get('/search', spotifyController.search);
 router.get('/play', spotifyController.play);
+router.get('/song', spotifyController.getSong);
 
 module.exports = router;

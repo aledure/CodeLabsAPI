@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const spotifyRoutes = require('./routes/spotifyRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
 const connectDB = require('./db');
 const cors = require('cors');
 
@@ -29,6 +30,9 @@ app.use('/user', userRoutes);
 
 // spotify routes
 app.use('/spotify', spotifyRoutes);
+
+// playlist routes
+app.use('/playlist', playlistRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);

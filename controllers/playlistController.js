@@ -1,7 +1,5 @@
-const express = require('express');
-const router = express.Router();
-const axios = require('axios');
 const Playlist = require('../models/playlistModel');
+const axios = require('axios');
 
 // Function to handle errors
 const handleErrors = (res, error) => {
@@ -9,8 +7,8 @@ const handleErrors = (res, error) => {
     res.status(500).json({ error: 'Internal server error' });
 };
 
-// Route to create a new playlist
-router.post('/', async (req, res) => {
+// Controller to create a new playlist
+const createPlaylist = async (req, res) => {
     try {
         const { userId, name, tracks } = req.body;
         const playlist = new Playlist({ userId, name, tracks });
@@ -19,20 +17,37 @@ router.post('/', async (req, res) => {
     } catch (error) {
         handleErrors(res, error);
     }
-});
+};
 
-// Route to get all playlists
-router.get('/', async (req, res) => {
+// Controller to add song to playlist
+const addSongToPlaylist = async (req, res) => {
+    try {
+        const playlistId = req.params.id;
+        const { songId } = req.body;
+        const playlist = await Playlist.findById(playlistId);
+        if (!playlist) {
+            return res.status(404).json({ error: 'Playlist not found' });
+        }
+        playlist.tracks.push(songId);
+        await playlist.save();
+        res.json(playlist);
+    } catch (error) {
+        handleErrors(res, error);
+    }
+};
+
+// Controller to get all playlists
+const getAllPlaylists = async (req, res) => {
     try {
         const playlists = await Playlist.find();
         res.json(playlists);
     } catch (error) {
         handleErrors(res, error);
     }
-});
+};
 
-// Route to get a single playlist by ID
-router.get('/:id', async (req, res) => {
+// Controller to get a single playlist by ID
+const getPlaylistById = async (req, res) => {
     try {
         const playlistId = req.params.id;
         const playlistResponse = await axios.get(`http://localhost:3000/playlists/${playlistId}`);
@@ -43,10 +58,10 @@ router.get('/:id', async (req, res) => {
         }
         handleErrors(res, error);
     }
-});
+};
 
-// Route to update a playlist by ID
-router.put('/:id', async (req, res) => {
+// Controller to update a playlist by ID
+const updatePlaylistById = async (req, res) => {
     try {
         const { name, tracks } = req.body;
         const playlistId = req.params.id;
@@ -58,10 +73,10 @@ router.put('/:id', async (req, res) => {
         }
         handleErrors(res, error);
     }
-});
+};
 
-// Route to delete a playlist by ID
-router.delete('/:id', async (req, res) => {
+// Controller to delete a playlist by ID
+const deletePlaylistById = async (req, res) => {
     try {
         const playlistId = req.params.id;
         await axios.delete(`http://localhost:3000/playlists/${playlistId}`);
@@ -72,6 +87,14 @@ router.delete('/:id', async (req, res) => {
         }
         handleErrors(res, error);
     }
-});
+};
 
-module.exports = router;
+// Export controllers
+module.exports = {
+    createPlaylist,
+    addSongToPlaylist,
+    getAllPlaylists,
+    getPlaylistById,
+    updatePlaylistById,
+    deletePlaylistById
+};

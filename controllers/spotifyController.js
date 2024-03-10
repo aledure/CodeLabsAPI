@@ -98,6 +98,25 @@ spotifyController.search = async (req, res) => {
     }
 };
 
+spotifyController.getSong = async (req, res) => {
+    const { id } = req.query;
+
+    try {
+        const songData = await spotifyApi.getTrack(id);
+        const song = songData.body;
+
+        const songInfo = {
+            name: song.name,
+            uri: song.uri
+        };
+
+        res.send(songInfo);
+    } catch (err) {
+        console.error('Get Song Error:', err);
+        res.send('Error occurred during get song');
+    }
+};
+
 spotifyController.play = (req, res) => {
     const { uri } = req.query;
 
