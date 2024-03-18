@@ -29,6 +29,16 @@ const UserSchema = new mongoose.Schema({
     enum: ["admin", "user"],
     default: "user",
   },
+  playlists: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Playlist",
+    },
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 UserSchema.pre("save", async function () {

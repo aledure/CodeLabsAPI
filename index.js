@@ -9,11 +9,16 @@ const app = express();
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
+const cors = require("cors");
+app.use(cors());
+
 // database
 const connectDB = require("./db/connect");
 
 // routers
 const authRouter = require("./routes/authRoutes");
+const spotifyRouter = require("./routes/spotifyRoutes");
+const userRoute = require("./routes/userRoutes");
 
 // middleware
 const notFoundMiddleware = require("./middleware/not-found");
@@ -34,6 +39,12 @@ app.get("/api/v1", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRouter);
+
+// user routes
+app.use("/api/v1/user", userRoute);
+
+// spotify routes
+app.use("/api/v1/spotify", spotifyRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
